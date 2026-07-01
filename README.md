@@ -65,10 +65,25 @@ You have a **live, working single-node Kubernetes cluster** with:
 - A running nginx pod in each of `dev` and `prod`, reachable internally via Service
 - ArgoCD installed and running
 
-### What's genuinely still missing / next
 
-- Bare Pods aren't self-healing yet — you'd want a **Deployment** wrapping them
-- Nothing is reachable from **outside** the cluster yet (that `?` from your last diagram)
-- ArgoCD isn't connected to any Git repo yet — it's installed but idle
 
-Given you said you're brand new to this — you've actually covered a huge amount of ground for one session. Want me to slow down and just walk through **one concept at a time** from here (starting with Deployments, since that's the natural next step), rather than jumping around?
+
+
+
+
+
+
+
+
+Before: You had a single nginx Pod. Just one object, sitting there. If it crashed or got deleted, nothing noticed, nothing replaced it. It was on its own.
+What a Deployment does: it's a supervisor. You tell it "I want 2 copies of this pod always running," and it takes care of making that true — forever, automatically, without you watching it.
+What actually happened when you applied yours: Kubernetes built three layers, not one:
+
+Deployment — the thing you defined, holding your intent ("2 replicas of nginx")
+ReplicaSet — created automatically by the Deployment; this is the actual worker that counts pods and keeps the number correct
+Pods — created automatically by the ReplicaSet; these are the real running nginx containers
+
+You only ever touch the top layer (the Deployment). Everything below it — the ReplicaSet, the individual pods, their names — Kubernetes generates and manages for you.
+The actual benefit: if one of those pods dies, the ReplicaSet notices the count dropped below 2 and creates a new one to replace it — instantly, with no one doing anything. That's the entire value of a Deployment over a bare Pod: it makes your app self-healing, so a crash or a deleted pod isn't an outage, it's a non-event.
+That's what you built — you went from "one fragile pod" to "a supervised, self-repairing pair of pods."
+
